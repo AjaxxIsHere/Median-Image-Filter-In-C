@@ -3,6 +3,9 @@
 //  * Distributing this coursework specification or your solution to it outside
 //  * the university is academic misconduct and a violation of copyright law. */
 
+// This code has been modified by: Mohamad Ajaz Imran
+// HW ID: H00458396
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +56,7 @@ void free_image(struct Image *img)
  */
 struct Image *load_image(const char *filename)
 {
-    /* Open the file for reading */
+    // Open the file for reading 
     FILE *f = fopen(filename, "r");
 
     // Error handling 1: file cannot be opened
@@ -63,29 +66,32 @@ struct Image *load_image(const char *filename)
         return NULL;
     }
 
+    
+    char format[6]; // Stores the format of the image (HSDEC)
+    int width, height; // Stores the width and height of the image (Useful when traversing the image)
+
     // Error handling 2: file format is not HSDEC
-    char format[6];
-
-    int width, height;
-
-    // fscanf returns the number of items read, which should be 3 for HSDEC
+    // fscanf returns the number of items read in the first line, so we check if it is 3 (HSDEC format) or not.
+    // If it is not 3, it means the file format is not HSDEC, so we print an error message and close the file.
+    // If it is 3, we store the width and height of the image in the variables width and height.
     if (fscanf(f, "%5s %d %d", format, &width, &height) != 3 || strcmp(format, "HSDEC") != 0)
     {
         fprintf(stderr, "Invalid image format! Check the file type!\n");
-
-        // Close the file
-        fclose(f);
+        fclose(f); // Close the file
         return NULL;
     }
 
-    /* Allocate the Image object, and read the image from the file */
+    // Declare a variable called img and initializes it to a pointer of type struct Image.
     struct Image *img = (struct Image *)malloc(sizeof(struct Image));
 
-    // Error handling 3: memory allocation failed
+    // Set the new img width and height to the original width and height
     img->width = width;
     img->height = height;
-
+    // Allocate memory for the pixels of the image and store it in the img pixels field.
+    // The size of the pixels field is width * height * sizeof(struct Pixel).
     img->pixels = (struct Pixel *)malloc(width * height * sizeof(struct Pixel));
+
+    // Error handling 3: memory allocation failed
     if (img->pixels == NULL)
     {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -95,8 +101,11 @@ struct Image *load_image(const char *filename)
     }
 
     // Error handling 4: invalid image size
+    // If the width or height of the image is less than 1, it means the image size is invalid, so we print an error message and close the file.
     for (int i = 0; i < width * height; i++)
     {
+        // values are scanned into the red, green, and blue fields of the current pixel struct img->pixels[i].
+        // It checks that fscanf was able to successfully read 3 values on each iteration. Else it prints an error and closes the file.
         if (fscanf(f, "%d %d %d", &(img->pixels[i].red), &(img->pixels[i].green), &(img->pixels[i].blue)) != 3)
         {
             fprintf(stderr, "Error reading pixel data.\n");
@@ -129,15 +138,20 @@ struct Image *load_image(const char *filename)
 bool save_image(const struct Image *img, const char *filename)
 {
 
-    //
+    // File open for writing
     FILE *f = fopen(filename, "w");
+
+    // Error handling: File cannot be open for writing
     if (f == NULL)
     {
         fprintf(stderr, "File %s could not be opened for writing.\n", filename);
         return false;
     }
 
+    // Write the image type, width and height into the file as the header
     fprintf(f, "HSDEC %d %d\n", img->width, img->height);
+
+    // Write the pixel data width * height number of times
     for (int i = 0; i < img->width * img->height; i++)
     {
         fprintf(f, "%d %d %d\n", img->pixels[i].red, img->pixels[i].green, img->pixels[i].blue);
@@ -157,6 +171,8 @@ bool save_image(const struct Image *img, const char *filename)
 struct Image *copy_image(const struct Image *source)
 {
     struct Image *copy = (struct Image *)malloc(sizeof(struct Image));
+
+    // Error handling 1: Allocation of memory to the copy failed
     if (copy == NULL)
     {
         fprintf(stderr, "Memory allocation failed.\n");
@@ -165,6 +181,8 @@ struct Image *copy_image(const struct Image *source)
 
     copy->width = source->width;
     copy->height = source->height;
+    // Dynamically allocating memory for the pixels array of copy.
+    // By allocating based on the source image size, the copy image will have an identically sized pixels array to store the pixel data.
     copy->pixels = (struct Pixel *)malloc(source->width * source->height * sizeof(struct Pixel));
     if (copy->pixels == NULL)
     {
@@ -173,6 +191,8 @@ struct Image *copy_image(const struct Image *source)
         return NULL;
     }
 
+    // memcpy is used to copy the contents of the source pixels array in one go.
+    // This ensures that the copy image has the same pixel data as the source image.
     memcpy(copy->pixels, source->pixels, source->width * source->height * sizeof(struct Pixel));
 
     return copy;
@@ -209,13 +229,15 @@ int compare_integers(const void *a, const void *b)
  */
 struct Image *apply_MEDIAN(const struct Image *source)
 {
+    // Create a copy of the source image
     struct Image *result = copy_image(source);
     if (result == NULL)
     {
         return NULL;
     }
 
-    // Create a 2D array to hold pixel values
+    // malloc call allocates enough memory for an array of source->height Pixel pointers. 
+    // It then assigns this block of memory to the pixel_matrix pointer.
     struct Pixel **pixel_matrix = (struct Pixel **)malloc(source->height * sizeof(struct Pixel *));
     if (pixel_matrix == NULL)
     {
@@ -223,6 +245,9 @@ struct Image *apply_MEDIAN(const struct Image *source)
         free_image(result);
         return NULL;
     }
+
+    // Allocate memory for each row of the 2D pixel matrix, 
+    // and storing the row pointers in the pixel_matrix array.
     for (int i = 0; i < source->height; i++)
     {
         pixel_matrix[i] = (struct Pixel *)malloc(source->width * sizeof(struct Pixel));
@@ -441,50 +466,3 @@ int main(int argc, char *argv[])
     free_image(out_img);
     return 0;
 }
-
-// struct Image *apply_MEDIAN2(const struct Image *source)
-// {
-//     struct Image *result = copy_image(source);
-//     if (result == NULL) {
-//         return NULL;
-//     }
-
-//     // Apply median filter
-//     for (int y = 0; y < source->height; y++) {
-//         for (int x = 0; x < source->width; x++) {
-//             // Create arrays to hold neighboring pixel values
-//             int red_values[9];
-//             int green_values[9];
-//             int blue_values[9];
-
-//             // Collect neighboring pixel values
-//             int count = 0;
-//             for (int dy = -1; dy <= 1; dy++) {
-//                 for (int dx = -1; dx <= 1; dx++) {
-//                     int nx = x + dx;
-//                     int ny = y + dy;
-
-//                     // Check boundary conditions
-//                     if (nx >= 0 && nx < source->width && ny >= 0 && ny < source->height) {
-//                         red_values[count] = source->pixels[ny * source->width + nx].red;
-//                         green_values[count] = source->pixels[ny * source->width + nx].green;
-//                         blue_values[count] = source->pixels[ny * source->width + nx].blue;
-//                         count++;
-//                     }
-//                 }
-//             }
-
-//             // Sort the pixel values
-//             qsort(red_values, count, sizeof(int), compare_integers);
-//             qsort(green_values, count, sizeof(int), compare_integers);
-//             qsort(blue_values, count, sizeof(int), compare_integers);
-
-//             // Set the pixel value to the median
-//             result->pixels[y * source->width + x].red = red_values[count / 2];
-//             result->pixels[y * source->width + x].green = green_values[count / 2];
-//             result->pixels[y * source->width + x].blue = blue_values[count / 2];
-//         }
-//     }
-
-//     return result;
-// }
