@@ -181,6 +181,7 @@ struct Image *copy_image(const struct Image *source)
 
     copy->width = source->width;
     copy->height = source->height;
+    
     // Dynamically allocating memory for the pixels array of copy.
     // By allocating based on the source image size, the copy image will have an identically sized pixels array to store the pixel data.
     copy->pixels = (struct Pixel *)malloc(source->width * source->height * sizeof(struct Pixel));
@@ -291,14 +292,14 @@ struct Image *apply_MEDIAN(const struct Image *source)
             blue_values[0] = pixel_matrix[y][x].blue;
 
             // Gather the left pixel value from the target pixel
-            // If the target pixel is on the left edge, set the right pixel value to 0 
             if (x > 0)
             {
                 red_values[1] = pixel_matrix[y][x - 1].red;
                 green_values[1] = pixel_matrix[y][x - 1].green;
                 blue_values[1] = pixel_matrix[y][x - 1].blue;
-            }            
-            else
+            } 
+            // else the target pixel is on the left edge, set the right pixel value to 0            
+            else      
             {
                 red_values[1] = 0;
                 green_values[1] = 0;
@@ -306,13 +307,13 @@ struct Image *apply_MEDIAN(const struct Image *source)
             }
             
             // Gather the right pixel value from the target pixel
-            // If the target pixel is on the right edge, set the right pixel value to 0
             if (x < source->width - 1)
             {
                 red_values[2] = pixel_matrix[y][x + 1].red;
                 green_values[2] = pixel_matrix[y][x + 1].green;
                 blue_values[2] = pixel_matrix[y][x + 1].blue;
             }
+            // else the target pixel is on the right edge, set the right pixel value to 0
             else
             {
                 red_values[2] = 0;
@@ -321,13 +322,13 @@ struct Image *apply_MEDIAN(const struct Image *source)
             }
 
             // Gather the up pixel value from the target pixel
-            // If the target pixel is on the top edge, set the up pixel value to 0
             if (y > 0)
             {
                 red_values[3] = pixel_matrix[y - 1][x].red;
                 green_values[3] = pixel_matrix[y - 1][x].green;
                 blue_values[3] = pixel_matrix[y - 1][x].blue;
             }
+            // else the target pixel is on the top edge, set the up pixel value to 0
             else
             {
                 red_values[3] = 0;
@@ -336,13 +337,13 @@ struct Image *apply_MEDIAN(const struct Image *source)
             }
 
             // Gather the down pixel value from the target pixel
-            // If the target pixel is on the bottom edge, set the down pixel value to 0
             if (y < source->height - 1)
             {
                 red_values[4] = pixel_matrix[y + 1][x].red;
                 green_values[4] = pixel_matrix[y + 1][x].green;
                 blue_values[4] = pixel_matrix[y + 1][x].blue;
             }
+            // else the target pixel is on the bottom edge, set the down pixel value to 0
             else
             {
                 red_values[4] = 0;
@@ -381,12 +382,15 @@ struct Image *apply_MEDIAN(const struct Image *source)
  */
 bool apply_NORM(struct Image *source)
 {
+
+    // Initialize variables to track minimum and maximum pixel values for each color component
     int min_red = 255, min_green = 255, min_blue = 255;
     int max_red = 0, max_green = 0, max_blue = 0;
 
-    // Find min and max values
+    // Find min and max values across all pixels in the image
     for (int i = 0; i < source->width * source->height; i++)
-    {
+    {   
+        // Update minimum values if necessary
         if (source->pixels[i].red < min_red)
             min_red = source->pixels[i].red;
         if (source->pixels[i].green < min_green)
@@ -394,6 +398,7 @@ bool apply_NORM(struct Image *source)
         if (source->pixels[i].blue < min_blue)
             min_blue = source->pixels[i].blue;
 
+        // Update maximum values if necessary
         if (source->pixels[i].red > max_red)
             max_red = source->pixels[i].red;
         if (source->pixels[i].green > max_green)
@@ -402,10 +407,11 @@ bool apply_NORM(struct Image *source)
             max_blue = source->pixels[i].blue;
     }
 
+    // Print the minimum and maximum values of the image 
     printf("Minimum value: %d\n", min_red < min_green ? (min_red < min_blue ? min_red : min_blue) : (min_green < min_blue ? min_green : min_blue));
     printf("Maximum value: %d\n", max_red > max_green ? (max_red > max_blue ? max_red : max_blue) : (max_green > max_blue ? max_green : max_blue));
 
-    // Normalize the image
+    // Normalize the image by rescaling all pixel values to the range 0-255
     for (int i = 0; i < source->width * source->height; i++)
     {
         source->pixels[i].red = (int)(((double)(source->pixels[i].red - min_red) / (double)(max_red - min_red)) * 255);

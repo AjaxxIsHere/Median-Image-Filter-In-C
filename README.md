@@ -2,37 +2,24 @@
 
 H00458396: HSDEC MEDIAN NORM
 
-Task HSDEC
-An HSDEC image consists entirely of ASCII text. It starts with a header:
-HSDEC
-width height
-where:• HSDEC — fixed code indicating HSDEC format
-• width — integer number of columns
-• height — integer number of rows
-The image data follows the header. Each pixel is stored as three unsigned 8-bit values as decimal
-numbers. Pixels are stored from left to right in the first row, then left to right in the second row, and
-so on until the end of the image.
-All fields in the file are separated by one or more whitespace (space, tab, carriage return or
-newline) characters.
+# Image Processing Coursework
 
-Task MEDIAN
-The apply_MEDIAN function should apply a median filter to an image. Each colour value in the
-output image should be computed as the median of the corresponding input pixel and the four
-pixels horizontally and vertically adjacent to it (above, below, left and right of it).
-To compute the median of a set of numbers, sort them into order and take the middle one. For
-example, you could copy the values into a fixed-length array, then call the qsort function from
-the standard library to sort them.
-Be careful to avoid accessing locations outside the bounds of the image.
+This project implements a basic image processing technique in C, includes median filter (apply_MEDIAN) and normalization (apply_NORM).
 
-Task NORM
-The apply_NORM function should first scan through the image to find the smallest and largest
-values used in the red, green and blue values (all together; you don't need to track red/green/blue
-separately). It should print out a message like:
-Minimum value: 10
-Maximum value: 255
-It should then normalise the image by scaling all the values so that the minimum value becomes 0,
-and the maximum value becomes the biggest possible value that can be stored. (Do this in two
-steps: subtract an offset to bring the minimum to 0, then multiply by a scaling factor to bring the
-maximum to the largest value.)
-Because this means modifying the image, you will need to remove the const from the type of
-apply_NORM's image argument.
+## Overview 
+* **Median Filter (apply_MEDIAN):** Smoothens the image by replacing each pixel's value with the median of its neighbors in 1x1 matrix (top, bottom, left, right,).
+* **Normalization (apply_NORM):** Rescales pixel values to the range of 0-255 for better visualization and consistency.
+
+## Prerequisits 
+1. Using any linux machine (WSL/ Virtual Machine also works)
+2. Root access to the program by the computer (this can be done with 'chmod -x ./process' for example)
+3. Any image file in '.hsdec' format in the same folder as the program (i've included 2 example images and their output ppm image in the folder). 
+
+## Usage
+1. Compile the code using the already included makefile. eg. run - 'make'
+2. Run the code using './process INPUTFILENAME OUTPUTFILENAME'. eg. run './process portrait.hsdec newPortrait.hsdec'
+3.Convert the output file from '.hsdec' to '.ppm' using the already included 'hsconvert.py' file. eg. run './hsconvert -f PPM newPortrait.hsdec viewPortrait.ppm'
+4. View the output image using any compatible image viewer in your machine.
+
+## Dependencies
+* Standard C libraries (no external dependencies)
